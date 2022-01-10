@@ -1,0 +1,50 @@
+/* Header Navbar */
+:root {
+    /* Light Mode */
+    --main-bg-loader: #bebebe;
+    /* Dark Mode*/
+    --themeDark-bg-loader: #585858;
+
+    --svg-text-font-color: var(--main-font-color);
+}
+
+[data-theme="svgDark"] {
+    --main-bg-loader: var(--themeDark-bg-loader);
+}
+
+.loader-wrap {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 0;
+    left: 0;
+    background-color: var(--main-bg-loader);
+    z-index: 2;
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
+    border-top-left-radius: 9px;
+}
+
+.loader-wrap>.loader {
+    border: 6px solid var(--svg-text-font-color);
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    position: relative;
+    top: calc((100% / 2) - 20px);
+    left: calc((100% / 2) - 20px);
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

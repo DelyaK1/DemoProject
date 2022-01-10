@@ -1,0 +1,94 @@
+/* Header Navbar */
+:root {
+    /* Light Mode */
+    --main-svg-color: #048b9c;
+    --main-font-color: #646464;
+    --main-bg-color: #E6E7EE;
+    --main-shadow-1-color: #b8b9be;
+    --main-shadow-2-color: #fff;
+    --main-shadow-3-color: #2b2b2b;
+    --main-border-color: #ced4da;
+    /* Dark Mode*/
+    --themeDark-bg-color: #41464b;
+    --themeDark-font-color: #E6E7EE;
+    --themeDark-shadow-1-color: #373c40;
+    --themeDark-shadow-2-color: #4b5156;
+    --themeDark-border-color: #373c40;
+}
+
+[data-theme="dark"] {
+    --main-font-color: var(--themeDark-font-color);
+    --main-bg-color: var(--themeDark-bg-color);
+    --main-shadow-1-color: var(--themeDark-shadow-1-color);
+    --main-shadow-2-color: var(--themeDark-shadow-2-color);
+    --main-border-color: var(--themeDark-border-color);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+.navbar {
+    background: var(--main-bg-color);
+    box-shadow: 3px 3px 6px #646464;
+    border-bottom: 1px solid var(--main-border-color);
+    /* #cecece */
+}
+
+.dark .navbar {
+    box-shadow: 3px 3px 6px var(--main-shadow-3-color);
+}
+
+.navbar-toggler {
+    border-color: var(--main-border-color);
+    /* #a0a0a0b0 */
+    height: 40px;
+    width: 60px;
+}
+
+.navbar-toggler:hover {
+    box-shadow: 3px 3px 6px var(--main-shadow-1-color);
+}
+
+.navbar-toggler:focus {
+    box-shadow: 3px 3px 6px var(--main-shadow-1-color);
+}
+
+.navbar-toggler-icon {
+    height: 32px;
+    width: 32px;
+}
+
+/* Чекбоксы с картинкой */
+.neu-checkbox {
+    cursor: pointer;
+}
+
+.neu-checkbox {
+    width: 5px;
+    height: 5px;
+    box-shadow: unset;
+    -webkit-box-shadow: unset;
+    -moz-box-shadow: unset;
+    color: black;
+}
+
+.neu-checkbox {
+    display: none;
+}
+
+.neu-checkbox:hover {
+    box-shadow: unset;
+    -webkit-box-shadow: unset;
+    -moz-box-shadow: unset;
+}
+
+.neu-checkbox+label path {
+    display: inline-block;
+    width: 19px;
+    height: 19px;
+    margin: -1px 4px 0 0;
+    vertical-align: middle;
+    cursor: pointer;
+}

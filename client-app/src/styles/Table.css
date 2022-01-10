@@ -1,0 +1,50 @@
+/* ----- Tables ----- */
+table {
+    border-color: var(--main-font-color);
+    padding: unset;
+    margin-bottom: 0;
+}
+
+table tr:not(:first-child) {
+    border-top: 1px solid var(--main-font-color);
+}
+
+table tr th:first-child {
+    width: 36px;
+}
+
+table td,
+table th {
+    border-bottom: none;
+    font-size: 14px;
+    font-family: 'Geometria';
+    line-height: 1.15;
+    -webkit-text-size-adjust: 100%;
+    padding: 0 10px;
+    white-space: inherit;
+}
+
+table td {
+    border-top: 1px groove;
+}
+
+table td.active {
+    color: #3900ff;
+}
+
+table td:not(:first-child),
+table th:not(:first-child) {
+    border-left: 1px solid var(--main-font-color);
+}
+
+table td p {
+    margin: 0;
+}
+
+table .collapse-column {
+    width: 16px;
+}
+
+table .collapse-switcher {
+    margin-bottom: 3px;
+}

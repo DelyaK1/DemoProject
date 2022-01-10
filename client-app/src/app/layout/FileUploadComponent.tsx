@@ -12,10 +12,11 @@ function FileUpload({saveFile, uploadFile}: Props)
   return (
       <Form>
     <div>
-    <Input type="file" onChange={saveFile} />
+    <Input className="d-none" type="file" onChange={saveFile} id="uploadID"/>
     </div>
     <div>
-      <Button onClick={uploadFile}>Upload</Button>
+      
+    <label onClick={uploadFile} className="btn btn-secondary" htmlFor="uploadID">Upload</label>
     </div>
       </Form>
      
