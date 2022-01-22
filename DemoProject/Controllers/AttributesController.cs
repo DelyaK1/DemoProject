@@ -1,4 +1,5 @@
-﻿using DemoProject.Models;
+﻿using DemoProject.Database.Models;
+using DemoProject.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RDLibrary;
@@ -16,60 +17,45 @@ namespace DemoProject.Controllers
 
     public class AttributesController : Controller
     {
-
         [HttpGet]
-        public async Task<List<DocumentAttributesModel>> GetAttributes()
+        public async Task<List<AttributesModel>> GetAttributes()
         {
-            FileAttributesContext context = new FileAttributesContext();
-
-            var filesId = context.GetFiles().Select(r => r.Id).ToList();
-            return context.GetFileAttributesList(filesId);
+            AttributeContext attributeContext = new AttributeContext();
+            FileContext fileContext = new FileContext();
+            var filesId = fileContext.GetSheets().Select(r => r.Id).ToList();
+            return attributeContext.GetAttributes(filesId);
         }
 
         [HttpGet("{id}")]
-        public async Task<DocumentAttributesModel> GetAttributes(int id)
+        public async Task<AttributesModel> GetAttributes(int id)
         {
-            FileAttributesContext context = new FileAttributesContext();
+            AttributeContext context = new AttributeContext();
             var docAttributes = context.GetFileAttributes(id);
             return docAttributes;
         }
 
-        [HttpPost]
-        public void SaveAttributes()
-        { 
-            FileAttributesContext context = new FileAttributesContext();
-
-            var filesId = context.GetFiles().Where(r => r.Status != "Successful").Select(r=>r.Id).ToList();
-            SaveAttributesProcessor(filesId);
-        }
-
-        public static void SaveAttributesProcessor(List<int> filesId)
+        [HttpPost("{id}")]
+        public void SaveAttributes(int id)
         {
-            FileAttributesContext context = new FileAttributesContext();
-
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-
-            FileProcessor fileProcessor = new FileProcessor();
-
-            foreach (int id in filesId)
+            FileContext fileContext = new FileContext();
+            var file = fileContext.GetFile(id);
+            var attrId = SaveAttributesProcessor(file.bytes, file.link);
+            if (attrId != -1)
             {
-                var bytes = context.GetFileBytes(id);
-                if (bytes != null)
-                {
-                    var model = fileProcessor.GetFileAttributes(bytes);
-                    var attrId = context.CreateFileAttributes(model.Result);
-                    if (attrId != -1)
-                    {
-                        context.UpdateFile("Succesful", attrId, id);
-                    }
-                    else
-                    {
-                        context.UpdateFile("Error", attrId, id);
-                    }
-                }
-
+                fileContext.UpdateFile("Succesful", attrId, id);
+            }
+            else
+            {
+                fileContext.UpdateFile("Error", attrId, id);
             }
         }
 
+        public static int SaveAttributesProcessor(byte[] bytes, string link)
+        {
+            AttributeContext attributeContext = new AttributeContext();
+            FileProcessor fileProcessor = new FileProcessor();
+            var model = fileProcessor.GetFileAttributes(bytes, link);
+            return attributeContext.InsertFileAttributes(model.Result);
+        }
     }
 }

@@ -1,7 +1,7 @@
 import { AttributesModel } from "./AttributesModel";
 
 export interface DocumentAttributesModel {
-    docId: number;
+    pageId: number;
     name: string;
-    models: AttributesModel[];
+    attributes: AttributesModel;
 }

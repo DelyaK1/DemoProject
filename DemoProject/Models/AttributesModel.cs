@@ -8,7 +8,7 @@ namespace DemoProject.Models
     public class AttributesModel
     {
         public int id {get;set;}
-        public int fileId {get;set;}
+        public int pageId {get;set; }
         public string Document { get; set; }
         public int Page { get; set; }
         public string FileName { get; set; }

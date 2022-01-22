@@ -10,8 +10,8 @@ const FileRow = ({file, selectDocument} : Props) => (
 
         <Table.Row>
         <Table.Cell textAlign='center' singleLine>
-        <a href='#' style={{color: "black"}}>{file.name.split('.pdf')[0]}</a>
-        <a href="">{selectDocument}</a>
+          <Button style={{background:'white'}} onClick={()=> selectDocument(file.pageId)}>{file.name.split('.pdf')[0]}</Button>
+        
         </Table.Cell>         
         <Table.Cell textAlign='center' singleLine>{file.type}</Table.Cell>
         <Table.Cell textAlign='center' singleLine>{file.pageNumber}</Table.Cell>

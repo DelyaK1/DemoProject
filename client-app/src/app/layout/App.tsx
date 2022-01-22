@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Container, Form, Grid, Input, Table} from 'semantic-ui-react';
+import { Button, Container, Form, Grid, Input, Table } from 'semantic-ui-react';
 import NavBar from '../layout/NavBar';
-import {v4 as uuid} from 'uuid';
+import { v4 as uuid } from 'uuid';
 import agent from '../api/agent';
 import { FileModel } from '../models/FileModel';
 import FileRow from './FileRow';
 import FileUploadComponent from './FileUploadComponent';
 import { DocumentAttributesModel } from '../models/DocumentAttributesModel';
-import DocumentAttributesList from './DocumentAttributesList';
 import Header from '../../components/Header';
-
-
-
+import { AnyRecord } from 'dns';
+import SVGWatcher from '../../components/SVGWatcher';
+import AttributesTable from './AttributesTable';
+import { AttributesModel } from '../models/AttributesModel';
 
 function App() {
 
@@ -19,97 +19,104 @@ function App() {
   const [fileName, setFileName] = useState("");
 
   const saveFile = (e: any) => {
+
     setFile(e.target.files[0]);
     setFileName(e.target.files[0].name);
   };
 
-  const uploadFile = async (e: any) => {
+  const uploadFile = (e: any) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("fileName", fileName);
+
     try {
       const res = agent.Files.upload(formData).then();
       console.log(res);
-    } catch (ex) {
+    }
+    catch (ex) {
       console.log(ex);
     };
-    try{
-    const res  = agent.Attributes.save().then();
-    console.log(res);
+   
+  };
 
-    }
-    catch(ex){
-      console.log(ex);
+  const [selectedFile, setSelectedFile] = useState(null);
 
-    }
-  }; 
-
-const [selectedFile, setSelectedFile] = useState(null);
-
-const [files, setFiles] = useState<FileModel[]>([]);
-useEffect(() => {
-  agent.Files.list().then(response =>
-  {
-    setFiles(response);
-  })
-}, []);
+  const [files, setFiles] = useState<FileModel[]>([]);
+  useEffect(() => {
+    agent.Files.list().then(response => {
+      setFiles(response);
+    })
+  }, []);
 
 
-const[selectedDocumentAttributes, setselectedDocumentAttributes]=useState<DocumentAttributesModel | undefined>(undefined);
+  const [selectedDocumentAttributes, setselectedDocumentAttributes] = useState<AttributesModel | undefined>(undefined);
 
-const [DocumentAttributes, setDocumentAttributes] = useState<DocumentAttributesModel[]>([]);
-useEffect(() => {
-  agent.Attributes.list().then(response =>
-  {
-    setDocumentAttributes(response);
-  })
-}, []);
+  // const [DocumentAttributes, setDocumentAttributes] = useState<AttributesModel>();
+  // useEffect(() => {
+  //   agent.Attributes.element(id).then(responce => {setDocumentAttributes = responce;})
+  // },[]);
 
-function handleSelectDocumentAttributes(id: number)
-{
-  setselectedDocumentAttributes(DocumentAttributes.find(x=>x.docId===id))
-};
+  function handleSelectDocumentAttributes(id: number) {
+   console.log(id);
+    agent.Attributes.element(id).then(responce=>
+    {
+      console.log(responce);      
+      setselectedDocumentAttributes(responce);
+      if(responce.FileName == "")
+      {
+        agent.Attributes.saveElement(id).then();
+      }
+    })
+    // setselectedDocumentAttributes(DocumentAttributes);
+  };
 
   return (
     <>
-      <Header/>
+      <Header />
       <Grid>
-      <div className="file-uploader" style={{marginTop: '20px', marginLeft:'70px'}}>
-      <FileUploadComponent 
-      saveFile={saveFile}
-      uploadFile={uploadFile}/>
+        <div className="file-uploader" style={{ marginTop: '20px', marginLeft: '70px' }}>
+          <FileUploadComponent
+            saveFile={saveFile}
+            uploadFile={uploadFile} />
 
-      </div>
+        </div>
       </Grid>
       <Grid>
-      <div style={{marginTop: '5px',height: '120px',  width: '650px', marginLeft: '70px',  overflowY: 'scroll', border: '10px'}}>
-      <Table >
-        <Table.Header>
-        <Table.Row textAlign='center'>
-        <Table.HeaderCell >Документ</Table.HeaderCell>
-        <Table.HeaderCell>Тип</Table.HeaderCell>
-        <Table.HeaderCell>Номер листа</Table.HeaderCell>
-        <Table.HeaderCell>Статус загрузки</Table.HeaderCell>
-        </Table.Row>
-      </Table.Header>
-      <Table.Body>
-        {files.map((file: FileModel) => (
-            <FileRow 
-            file={file}
-            selectDocument={handleSelectDocumentAttributes}
-            />
-            ))}
-      </Table.Body>    
-      </Table>     
-    </div>  
-    </Grid> 
-    <Grid>
-    <div style={{marginTop: '5px',height: '400px',  width: '650px', marginLeft: '70px',  overflowY: 'scroll', border: '10px'}}>
-        <DocumentAttributesList
-        selectedDocumentAttributes={DocumentAttributes[0]} 
-        />  
-    </div> 
-    </Grid>              
+        <div style={{ marginTop: '5px', height: '250px', width: '650px', marginLeft: '70px', overflowY: 'scroll', border: '10px' }}>
+          <Table >
+            <Table.Header>
+              <Table.Row textAlign='center'>
+                <Table.HeaderCell >Документ</Table.HeaderCell>
+                <Table.HeaderCell>Тип</Table.HeaderCell>
+                <Table.HeaderCell>Номер листа</Table.HeaderCell>
+                <Table.HeaderCell>Статус загрузки</Table.HeaderCell>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {files.map((file: FileModel) => (
+                <FileRow
+                  file={file}
+                  selectDocument={handleSelectDocumentAttributes}
+                />
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
+      </Grid>
+      <Grid>
+        {selectedDocumentAttributes !== undefined && 
+        <div style={{ marginTop: '10px', height: '300px', width: '650px', marginLeft: '70px', overflowY: 'scroll', border: '10px' }}>
+          <AttributesTable
+            selectedDocumentAttributes={selectedDocumentAttributes}
+          />
+        </div> }
+        {selectedDocumentAttributes !== undefined && <div style={{ marginTop: '-250px', marginLeft: '20px', border: '10px' }}>
+        <SVGWatcher/>
+        </div>  }   
+      </Grid>
+      <Grid>
+      
+      </Grid>
     </>
   );
 }

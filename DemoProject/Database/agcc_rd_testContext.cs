@@ -123,8 +123,6 @@ namespace DemoProject
                     .IsRequired()
                     .HasMaxLength(50);
 
-                entity.Property(e => e.Type).HasMaxLength(50);
-
                 entity.HasOne(d => d.Attributes)
                     .WithMany(p => p.TestFiles)
                     .HasForeignKey(d => d.AttributesId)

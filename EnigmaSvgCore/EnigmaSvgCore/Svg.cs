@@ -1,13 +1,23 @@
-﻿using System;
+﻿using Aspose.Html.Dom.Svg;
+using Aspose.Html.Converters;
+using Aspose.Html.Rendering.Image;
+using Aspose.Html.Saving;
+using Aspose.Imaging;
+using Aspose.Imaging.FileFormats.Png;
+using Aspose.Imaging.ImageOptions;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using static Org.BouncyCastle.Bcpg.Attr.ImageAttrib;
+using Amazon.DynamoDBv2;
 
 namespace EnigmaSvgCore
 {
@@ -266,7 +276,7 @@ namespace EnigmaSvgCore
                 Guid guid = Guid.NewGuid();
                 string svgTempFilename = System.IO.Path.GetTempPath() + guid.ToString() + ".svg";
                 SaveAsSvg(svgTempFilename);
-                using (Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument())
+                using (Spire.Pdf.PdfDocument pdf = new())
                 {
                     pdf.LoadFromSvg(svgTempFilename);
                     pdf.SaveToFile(pdfFilename, Spire.Pdf.FileFormat.PDF);
@@ -285,22 +295,44 @@ namespace EnigmaSvgCore
             }
         }
 
-        //public static Image GetImage(byte[] pdfBytes, int pageNumber = 1)
-        //{
-        //    Image image = null;
-        //    try
-        //    {
-        //        using (Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument(pdfBytes))
-        //        {
-        //            image = pdf.SaveAsImage(pageNumber - 1, Spire.Pdf.Graphics.PdfImageType.Metafile);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-        //    }
-        //    return image;
-        //}
+        public static string GetImage(string svg, int pageNumber = 1)
+        {
+            //SVGDocument document = new SVGDocument("");
+            //var renderer = new Aspose.Pdf.Devices.BmpDevice();
+            //renderer.Process(document, "D:\\VS\\output.bmp");
+            //Image image = null;
+
+            using (var document = new SVGDocument(svg))
+            {
+                using (var device = new ImageDevice(new ImageRenderingOptions(ImageFormat.Bmp), svg.Replace("svg", "bmp")))
+                {
+                    document.RenderTo(device);
+                }
+            }
+
+            using (var image = Aspose.Imaging.Image.Load(svg))
+            {
+                //Obtain default saving options defined for each image
+                ImageOptionsBase exportOptions = ExportFormat.Value.Clone();
+                    VectorRasterizationOptions rasterizationOptions = format.Value;
+                    rasterizationOptions.PageWidth = image.Width;
+                    rasterizationOptions.PageHeight = image.Height;
+                    exportOptions.VectorRasterizationOptions = rasterizationOptions;
+                image.Save(svg.Replace("svg","bmp"), exportOptions);
+            }
+            //try
+            //{
+            //    using (Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument(pdfBytes))
+            //    {
+            //        image = pdf.SaveAsImage(1, Spire.Pdf.Graphics.PdfImageType.Bitmap);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
+            return image;
+            }
 
         public Svg(List<Node> svgNodes, int pageNumber = 1)
         {
@@ -980,7 +1012,7 @@ namespace EnigmaSvgCore
             return allXmlNodes;
         }
 
-        public Text[] GetTexts(bool hidden = false, bool includeEmptyTexts = false, RectangleF? bounds = null)
+        public Text[] GetTexts(bool hidden = false, bool includeEmptyTexts = false, System.Drawing.RectangleF? bounds = null)
         {
             var textOpeningNodes = Nodes.AsParallel().Where(n => n.Name == "text" && n.Type == Node.NodeType.Opening && n.Hidden() == hidden).OrderBy(n => n.Order).ToArray();
 
@@ -1028,7 +1060,7 @@ namespace EnigmaSvgCore
             return resultTexts;
         }
 
-        public Word[] GetWords(bool hidden = false, float leanDeviation = 0.02f, RectangleF? bounds = null)
+        public Word[] GetWords(bool hidden = false, float leanDeviation = 0.02f, System.Drawing.RectangleF? bounds = null)
         {
             var texts = GetTexts(hidden, false, bounds).ToList();
             
@@ -1426,7 +1458,7 @@ namespace EnigmaSvgCore
         /// <param name="notHiddenOnly">Если True, то будет производиться поиск только видимых линий. Если False, то невидимые линии и линии белого цвета также будут использоваться для поиска.</param>
         /// <param name="notDashedOnly">Если True, то пунктирные и штрихпунктирные линии будут игнорироваться. Если False, то данные линии будут учитываться при поиске также как и обычные.</param>
         /// <returns></returns>
-        public List<Cell> GetCells(RectangleF targetArea, float arcRatio = 5.0f, float continuousLineMinLengthH = 20.0f, float continuousLineMinLengthV = 20.0f, float leanRatio = 2.0f, float spacing = 3.0f, float distance = 1.0f, float noiseFilter = 6.0f, bool notHiddenOnly = true, bool notDashedOnly = true)
+        public List<Cell> GetCells(System.Drawing.RectangleF targetArea, float arcRatio = 5.0f, float continuousLineMinLengthH = 20.0f, float continuousLineMinLengthV = 20.0f, float leanRatio = 2.0f, float spacing = 3.0f, float distance = 1.0f, float noiseFilter = 6.0f, bool notHiddenOnly = true, bool notDashedOnly = true)
         {
             var lines = GetLines(arcRatio, notHiddenOnly, notDashedOnly);
             List<Line> horizontalLines = Line.ConcatenateHLines(lines, targetArea, continuousLineMinLengthH, leanRatio, spacing, distance, noiseFilter);
@@ -1487,7 +1519,7 @@ namespace EnigmaSvgCore
             List<Line> res = new List<Line>();
             await Task.Run(() =>
             {
-                res = Line.ConcatenateHLines(lines, new RectangleF());
+                res = Line.ConcatenateHLines(lines, new System.Drawing.RectangleF());
             });
             return res;
         }
@@ -1497,7 +1529,7 @@ namespace EnigmaSvgCore
             List<Line> res = new List<Line>();
             await Task.Run(() =>
             {
-                res = Line.ConcatenateVLines(lines, new RectangleF());
+                res = Line.ConcatenateVLines(lines, new System.Drawing.RectangleF());
             });
 
             return res;
@@ -1574,7 +1606,7 @@ namespace EnigmaSvgCore
             InsertNodes(new List<Node> { newNode });
         }
 
-        public void DrawRectangle(RectangleF bounds, float borderWidth = 2.0f, string hexColor = "#ff0000", string fillProperty = "none", string nClass = null, string nId = null)
+        public void DrawRectangle(System.Drawing.RectangleF bounds, float borderWidth = 2.0f, string hexColor = "#ff0000", string fillProperty = "none", string nClass = null, string nId = null)
         {
             Node newNode = new Node()
             {

@@ -1,7 +1,7 @@
 export interface AttributesModel {
-    Id: number;
-    FileId: number;
-    Document: string;
+    id: number;
+    pageId: number;
+    document: string;
     Page: number;
     FileName: string;
     ContractorName: string;

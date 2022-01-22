@@ -1,5 +1,4 @@
-import axios, { AxiosResponse } from 'axios'
-import { Activity } from '../models/activity';
+import axios, { AxiosResponse } from 'axios';
 import { AttributesModel } from '../models/AttributesModel';
 import { DocumentAttributesModel } from '../models/DocumentAttributesModel';
 import { FileModel } from '../models/FileModel';
@@ -41,16 +40,21 @@ const Files = {
 }
 
 const Attributes = {
-    list: () => requests.get<DocumentAttributesModel[]>('/Attributes'),
-    element: (fileId: number) => requests.get<DocumentAttributesModel>(`/Attributes/${fileId}`),
-    save:() => axios.post<void>(`/Attributes`)
+    list: () => requests.get<AttributesModel[]>('/Attributes'),
+    element: (fileId: number) => requests.get<AttributesModel>(`/Attributes/${fileId}`),
+    // save:() => axios.post<void>(`/Attributes`),
+    saveElement:(fileId: number) => axios.post<void>(`/Attributes/${fileId}`)
+}
+const Svg = {
+    svg: (fileId: number) => requests.get<any>(`/Svg/${fileId}`)
 }
 
 const formData = new FormData()
 
 const agent = {
     Files,
-    Attributes
+    Attributes,
+    Svg
 }
 
 export default agent;

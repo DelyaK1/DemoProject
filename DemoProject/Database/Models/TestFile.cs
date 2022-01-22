@@ -9,12 +9,12 @@ namespace DemoProject
     {
         public int Id { get; set; }
         public int PageNumber { get; set; }
-        public string Type { get; set; }
         public int DocumentId { get; set; }
         public string Status { get; set; }
         public int ByteId { get; set; }
         public int? AttributesId { get; set; }
         public int? CheckResultsId { get; set; }
+        public string Links { get; set; }
 
         public virtual TestAttribute Attributes { get; set; }
         public virtual TestByte Byte { get; set; }

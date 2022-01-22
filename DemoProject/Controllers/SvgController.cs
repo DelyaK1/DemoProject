@@ -1,9 +1,13 @@
-﻿using EnigmaSvgCore;
+﻿using DemoProject.Database.Models;
+using EnigmaSvgCore;
 using Microsoft.AspNetCore.Mvc;
+using RDLibrary;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DemoProject.Controllers
@@ -17,37 +21,33 @@ namespace DemoProject.Controllers
         [HttpGet("{id}")]
         public ContentResult GetSvg(int id)
         {
-            FileAttributesContext context = new FileAttributesContext();
-
-            var svgname = context.GetFiles().Where(r => r.Id == id).Select(r=>r.DocumentName).First().Split(new string[] { ".pdf" }, StringSplitOptions.None)[0];
-            EnigmaSvgCore.Svg.ConvertPdfToSvg(Directory.GetCurrentDirectory() + "\\wwwroot\\"+svgname+".pdf", Directory.GetCurrentDirectory() + "\\wwwroot\\" + svgname + ".svg");
-
-            var document = Directory.GetFiles(Directory.GetCurrentDirectory() + "\\wwwroot", "*.svg").Where(r => r.Contains(svgname)).FirstOrDefault();
-            if(string.IsNullOrEmpty(document))
+            FileProcessor processor = new FileProcessor();
+            FileContext fileContext = new FileContext();
+            var file = fileContext.GetFile(id);
+            //var svgname = file.link.Replace("pdf", "svg");
+            //if (!System.IO.File.Exists(svgname))
+            //{
+            //    Svg.ConvertPdfToSvg(file.link, svgname);
+            //}
+            //var bytes = System.IO.File.ReadAllBytes(svgname);
+            Svg svg = null;
+            Xml xml = new Xml(svg.GetXmlLines());
+            string xmlText = string.Join(Environment.NewLine, xml.Lines);
+            System.Text.Encoding encoding = null;
+            try
             {
-                EnigmaSvgCore.Svg svg = new EnigmaSvgCore.Svg(document);
-                Xml xml = new Xml(svg.GetXmlLines());
-                string xmlText = string.Join(Environment.NewLine, xml.Lines);
-                System.Text.Encoding encoding = null;
-                try
-                {
-                    encoding = System.Text.Encoding.GetEncoding(svg.XmlEncoding);
-                }
-                catch
-                {
-                    encoding = System.Text.Encoding.UTF8;
-                }
-
-                return new ContentResult()
-                {
-                    Content = xmlText,
-                    ContentType = "text/plain"                     
-                };
+                encoding = System.Text.Encoding.GetEncoding(svg.XmlEncoding);
             }
-            else
+            catch
             {
-                return null;
+                encoding = System.Text.Encoding.UTF8;
             }
+
+            return new ContentResult()
+            {
+                Content = xmlText,
+                ContentType = "text/plain"
+            };
         }
     }
 }

@@ -16,7 +16,7 @@ namespace DemoProject.Controllers
         public EnigmaSvgCore.Svg File(string name)
         {
             string pdfname = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", name + ".pdf");
-            string svgname = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", name +".svg");
+            string svgname = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", name + ".svg");
             try
             {
                 EnigmaSvgCore.Svg.ConvertPdfToSvg(pdfname, svgname);
@@ -30,7 +30,7 @@ namespace DemoProject.Controllers
             {
                 return null;
             }
-            
+
         }
     }
 }

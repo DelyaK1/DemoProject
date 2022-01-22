@@ -1,8 +1,8 @@
 export interface FileModel {
-    id: number;
+    pageId: number;
     docId: number;
     name: string;
     pageNumber: string;
     type: string;
-    status: string;
+    Status: string;
 }

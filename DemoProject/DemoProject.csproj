@@ -19,10 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EnigmaSvgCore\EnigmaSvgCore\EnigmaSvgCore.csproj" />
     <ProjectReference Include="..\Library\RDLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Interfaces\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
