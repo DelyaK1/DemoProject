@@ -1,23 +1,14 @@
-﻿using Aspose.Html.Dom.Svg;
-using Aspose.Html.Converters;
-using Aspose.Html.Rendering.Image;
-using Aspose.Html.Saving;
-using Aspose.Imaging;
-using Aspose.Imaging.FileFormats.Png;
-using Aspose.Imaging.ImageOptions;
-using System.Drawing;
-using System.Drawing.Drawing2D;
+﻿using iText.Kernel.Pdf;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
-using static Org.BouncyCastle.Bcpg.Attr.ImageAttrib;
-using Amazon.DynamoDBv2;
 
 namespace EnigmaSvgCore
 {
@@ -269,23 +260,82 @@ namespace EnigmaSvgCore
             }
         }
 
-        public string SaveAsPdf(string pdfFilename)
+        public static void SaveAsImg(string svgFilename, string imgFilename)
+        {
+            Spire.Pdf.PdfDocument pdf3 = new Spire.Pdf.PdfDocument();
+            pdf3.LoadFromSvg(svgFilename);
+            MemoryStream memStream = new MemoryStream();
+            pdf3.SaveToStream(memStream);
+            var bytes = memStream.ToArray();
+            var img = SaveAsImage(bytes, imgFilename);
+        }
+        public static string SaveAsImage(byte[] file, string imageFilename)
+        {
+            int Resolution = 0;
+           // Buffer.BlockCopy(file, 0, file, 0, file.Length);
+            //System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+            using (BitMiracle.Docotic.Pdf.PdfDocument pdf = new BitMiracle.Docotic.Pdf.PdfDocument(file))
+            {
+                var page = pdf.Pages[0];
+                Resolution = (int)page.Resolution;
+            }
+            using (Aspose.Pdf.Document aPdf = new Aspose.Pdf.Document(new MemoryStream(file)))
+            {
+                
+                var size = GetSizeWithRotationInt(file);
+                Aspose.Pdf.Devices.BmpDevice bmpDevice = new Aspose.Pdf.Devices.BmpDevice(new Aspose.Pdf.PageSize(size.Width, size.Height), new Aspose.Pdf.Devices.Resolution(Resolution, Resolution));
+                MemoryStream ms = new MemoryStream();
+                bmpDevice.Process(aPdf.Pages[1], ms);
+                System.IO.File.WriteAllBytes(imageFilename, ms.ToArray());
+            }
+            return imageFilename;
+        }
+
+        public static Rectangle GetSizeWithRotationInt(byte[] file)
+        {
+            string guid = Guid.NewGuid().ToString();
+            string TempFolder = System.IO.Path.GetTempPath();
+            string pTempFilename = TempFolder + guid + ".pdf";
+            System.IO.File.WriteAllBytes(pTempFilename, file);
+            using (PdfDocument pdfDoc = new PdfDocument(new PdfReader(pTempFilename)))
+            {
+                Delete(pTempFilename);
+                var size = pdfDoc.GetPage(1).GetPageSizeWithRotation();
+                return new Rectangle((int)size.GetX(), (int)size.GetY(), (int)size.GetWidth(), (int)size.GetHeight());
+            }
+        }
+
+        private static bool Delete(string filename)
+        {
+            bool success = true;
+            try
+            {
+                System.IO.File.Delete(filename);
+            }
+            catch
+            {
+                success = false;
+            }
+            return success;
+        }
+
+        public static string SaveAsPdf(string svgFilename, string pdfFilename)
         {
             try
             {
-                Guid guid = Guid.NewGuid();
-                string svgTempFilename = System.IO.Path.GetTempPath() + guid.ToString() + ".svg";
-                SaveAsSvg(svgTempFilename);
-                using (Spire.Pdf.PdfDocument pdf = new())
-                {
-                    pdf.LoadFromSvg(svgTempFilename);
-                    pdf.SaveToFile(pdfFilename, Spire.Pdf.FileFormat.PDF);
-                }
-                try
-                {
-                    System.IO.File.Delete(svgTempFilename);
-                }
-                catch { }
+                //Guid guid = Guid.NewGuid();
+                //string svgTempFilename = System.IO.Path.GetTempPath() + guid.ToString() + ".svg";
+                //SaveAsSvg(svgTempFilename);
+                //using (Spire.Pdf.PdfDocument pdf = new())
+                //{
+                //    pdf.LoadFromSvg(svgTempFilename);
+                //    pdf.SaveToFile(pdfFilename, Spire.Pdf.FileFormat.PDF);
+                //}
+                //try
+                //{
+                //    System.IO.File.Delete(svgTempFilename);
+                //}
+                //catch { }
                 return pdfFilename;
             }
             catch (Exception ex)
@@ -295,44 +345,87 @@ namespace EnigmaSvgCore
             }
         }
 
-        public static string GetImage(string svg, int pageNumber = 1)
-        {
-            //SVGDocument document = new SVGDocument("");
-            //var renderer = new Aspose.Pdf.Devices.BmpDevice();
-            //renderer.Process(document, "D:\\VS\\output.bmp");
-            //Image image = null;
+        //private Image ConvertToImage()
+        //{
+        //    Image pdfImage = null;
+        //    using (Aspose.Pdf.Document aPdf = new Aspose.Pdf.Document(new MemoryStream(File)))
+        //    {
+        //        var size = GetSizeWithRotationInt();
 
-            using (var document = new SVGDocument(svg))
-            {
-                using (var device = new ImageDevice(new ImageRenderingOptions(ImageFormat.Bmp), svg.Replace("svg", "bmp")))
-                {
-                    document.RenderTo(device);
-                }
-            }
+        //        Aspose.Pdf.Devices.BmpDevice bmpDevice = new Aspose.Pdf.Devices.BmpDevice(new Aspose.Pdf.PageSize(size.Width, size.Height), new Aspose.Pdf.Devices.Resolution(Resolution, Resolution));
+        //        MemoryStream ms = new MemoryStream();
+        //        bmpDevice.RenderingOptions = new Aspose.Pdf.RenderingOptions { UseNewImagingEngine = true };
+        //        bmpDevice.Process(aPdf.Pages[1], ms);
+        //        string guid = Guid.NewGuid().ToString();
+        //        string tempFilename = TempFolder + guid + ".bmp";
+        //        System.IO.File.WriteAllBytes(tempFilename, ms.ToArray());
+        //        pdfImage = new Image(tempFilename);
+        //        try
+        //        {
+        //            System.IO.File.Delete(tempFilename);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine(ex.Message);
+        //        }
+        //        //using (MemoryStream ms = aPdf.Pages[1].ConvertToPNGMemoryStream())
+        //        //{
+        //        //    string guid = Guid.NewGuid().ToString();
+        //        //    string tempFilename = TempFolder + guid + ".png";
+        //        //    System.IO.File.WriteAllBytes(tempFilename, ms.ToArray());
+        //        //    pdfImage = new Image(tempFilename);
+        //        //    try
+        //        //    {
+        //        //        System.IO.File.Delete(tempFilename);
+        //        //    }
+        //        //    catch (Exception ex)
+        //        //    {
+        //        //        Console.WriteLine(ex.Message);
+        //        //    }
 
-            using (var image = Aspose.Imaging.Image.Load(svg))
-            {
-                //Obtain default saving options defined for each image
-                ImageOptionsBase exportOptions = ExportFormat.Value.Clone();
-                    VectorRasterizationOptions rasterizationOptions = format.Value;
-                    rasterizationOptions.PageWidth = image.Width;
-                    rasterizationOptions.PageHeight = image.Height;
-                    exportOptions.VectorRasterizationOptions = rasterizationOptions;
-                image.Save(svg.Replace("svg","bmp"), exportOptions);
-            }
-            //try
-            //{
-            //    using (Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument(pdfBytes))
-            //    {
-            //        image = pdf.SaveAsImage(1, Spire.Pdf.Graphics.PdfImageType.Bitmap);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine(ex.Message);
-            //}
-            return image;
-            }
+        //        //}
+        //    }
+        //    return pdfImage;
+        //}
+        
+        //public static void GetImage(string svg, int pageNumber = 1)
+        //{
+        //        byte[] file = new byte[File.Length];
+        //        Buffer.BlockCopy(File, 0, file, 0, file.Length);
+        //        //System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+
+        //        using (Aspose.Pdf.Document aPdf = new Aspose.Pdf.Document(new MemoryStream(file)))
+        //        {
+        //            var size = GetSizeWithRotationInt();
+        //            Aspose.Pdf.Devices.BmpDevice bmpDevice = new Aspose.Pdf.Devices.BmpDevice(new Aspose.Pdf.PageSize(size.Width, size.Height), new Aspose.Pdf.Devices.Resolution(Resolution, Resolution));
+        //            MemoryStream ms = new MemoryStream();
+        //            bmpDevice.Process(aPdf.Pages[1], ms);
+        //            System.IO.File.WriteAllBytes(imageFilename, ms.ToArray());
+        //        }
+
+        //        //using (Aspose.Pdf.Document aPdf = new Aspose.Pdf.Document(new MemoryStream(file)))
+        //        //{
+        //        //    using (MemoryStream ms = aPdf.Pages[1].ConvertToPNGMemoryStream())
+        //        //    {
+        //        //        System.IO.File.WriteAllBytes(imageFilename, ms.ToArray());
+        //        //    }
+        //        //}
+
+        //       // return imageFilename;
+            
+        //    //try
+        //    //{
+        //    //    using (Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument(pdfBytes))
+        //    //    {
+        //    //        image = pdf.SaveAsImage(1, Spire.Pdf.Graphics.PdfImageType.Bitmap);
+        //    //    }
+        //    //}
+        //    //catch (Exception ex)
+        //    //{
+        //    //    Console.WriteLine(ex.Message);
+        //    //}
+        //    //return image;
+        //}
 
         public Svg(List<Node> svgNodes, int pageNumber = 1)
         {

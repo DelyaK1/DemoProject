@@ -35,7 +35,7 @@ function App() {
     }
     catch (ex) {
       console.log(ex);
-    };
+    };  
    
   };
 
@@ -57,17 +57,33 @@ function App() {
   // },[]);
 
   function handleSelectDocumentAttributes(id: number) {
-   console.log(id);
+
     agent.Attributes.element(id).then(responce=>
-    {
-      console.log(responce);      
+    {  
+      console.log(id);
       setselectedDocumentAttributes(responce);
-      if(responce.FileName == "")
+      console.log(responce);
+      if(responce.FileName == null)
       {
+        console.log("no data");
         agent.Attributes.saveElement(id).then();
       }
     })
-    // setselectedDocumentAttributes(DocumentAttributes);
+  };
+
+  function handleSelectDocumentImage(id: number) {
+
+    agent.Attributes.element(id).then(responce=>
+    {  
+      console.log(id);
+      setselectedDocumentAttributes(responce);
+      console.log(responce);
+      if(responce.FileName == null)
+      {
+        console.log("no data");
+        agent.Attributes.saveElement(id).then();
+      }
+    })
   };
 
   return (
@@ -110,9 +126,12 @@ function App() {
             selectedDocumentAttributes={selectedDocumentAttributes}
           />
         </div> }
-        {selectedDocumentAttributes !== undefined && <div style={{ marginTop: '-250px', marginLeft: '20px', border: '10px' }}>
+        {
+        selectedDocumentAttributes !== undefined && 
+        <div style={{ marginTop: '-250px', marginLeft: '20px', border: '10px' }}>
         <SVGWatcher/>
-        </div>  }   
+        </div>  
+        }   
       </Grid>
       <Grid>
       

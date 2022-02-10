@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Aspose.HTML" Version="22.1.0" />
     <PackageReference Include="Aspose.PDF" Version="21.11.0" />
+    <PackageReference Include="BitMiracle.Docotic.Pdf" Version="8.4.12906" />
     <PackageReference Include="itext7" Version="7.2.0" />
     <PackageReference Include="Spire.PDF" Version="7.11.1" />
     <PackageReference Include="System.Xml.ReaderWriter" Version="4.3.1" />

@@ -29,7 +29,7 @@ interface Props{
     <Table.Row>
       <Table.Cell>File name:</Table.Cell>
       <Table.Cell>
-       <div style={{color: selectedDocumentAttributes?.FileName == 'N/D' ? 'red':""}}>{selectedDocumentAttributes?.FileName}</div>
+       <div style={{color: selectedDocumentAttributes?.FileName == 'N/D' || selectedDocumentAttributes?.FileName == 'warning' ? 'red':""}}>{selectedDocumentAttributes?.FileName}</div>
       </Table.Cell>
     </Table.Row>
       <Table.Row>

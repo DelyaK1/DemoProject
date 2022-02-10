@@ -19,61 +19,132 @@ namespace RDLibrary
         public async Task<AttributesModel> GetFileAttributes(byte[] pdfBytes, string link)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-
+            List<string> errStatus = new List<string>
+            {
+                "N/D",
+                "warning",
+                "-1",
+                "01.01.0001"
+            };
             MemoryStream stream = new MemoryStream();
             stream.Write(pdfBytes, 0, pdfBytes.Length);
             Svg svg = new Svg(stream);
-            Svg.GetImage(stream);
-
-
             AttributesModel model = new AttributesModel();
+            List<Cell> errorCells = new List<Cell>();
+            List<Element> elements = new List<Element>();
+            Table table = null;
+
             try
             {
                 //Поиск ячеек штампа
-                System.Drawing.RectangleF targetArea1 = new System.Drawing.RectangleF(svg.Width - svg.Width / 2, svg.Height - svg.Height / 2, svg.Width, svg.Height);
-                
+                System.Drawing.RectangleF targetArea1 = new System.Drawing.RectangleF(svg.Width - svg.Width / 2, svg.Height - svg.Height / 2, svg.Width, svg.Height);                
                 List<Cell> cells = svg.GetCells(targetArea1).AsParallel()
                     .Where(r => r.Bounds.Height > 1.5 && r.Bounds.X > 1.8)
-                    .ToList();
-
+                    .ToList();                
                 //Группировка по строкам 
                 var tables = svg.GetTables(cells);
                 if(tables.Count() > 0)
                 {
-                    var table = tables.Aggregate((t1, t2) => t1.Cells.Count() > t2.Cells.Count() ? t1 : t2);
-                    var footerRow = svg.GetWords(false, 0.02f, new System.Drawing.RectangleF(table.Bounds.X, table.Bounds.Bottom, table.Bounds.Width, svg.Height));
-                    SaveSvg(svg, table, link);
-
-                    model.FooterName = footerRow.Count() > 0 ? Regex.Match(footerRow.First().Value, @"AGCC.*\.[a-z]+").Value : Error.error.ToString();
-                    model.PapeSize = footerRow.Count() > 0 ?Regex.Match(footerRow.LastOrDefault().Value, @"[AА][0-9]+([xх][0-9])?").Value : Error.error.ToString();
-                    model.Scale = "N/D";
+                    table = tables.Aggregate((t1, t2) => t1.Cells.Count() > t2.Cells.Count() ? t1 : t2);
+                    var footerCells = svg.GetWords(false, 0.02f, new System.Drawing.RectangleF(table.Bounds.X, table.Bounds.Bottom, table.Bounds.Width, svg.Height));
+                    var footerRow = footerCells.Count() > 0 ? footerCells : null;
                     var rightCells = table.RightCells.OrderByDescending(r=>r.Bounds.Y).ToArray();
-                    model.TotalSheets = Int32.TryParse(rightCells[1].GetContent().Value, out int sheets) ? sheets : -1;
-                    model.ContractorName = rightCells[3].GetContent().Value;
-                    model.FileName = rightCells[4].GetContent().Value;
-                    model.Rev = rightCells[5].GetContent().Value;
+                    elements.Add(new Element
+                    { 
+                        Name = "FooterName",
+                        Cell = null,
+                        Content = Regex.Match(footerRow?.First()?.Value ?? "N/D", @"AGCC.*\.[a-z]+")?.Value ?? "N/D"
+                    });
+                    elements.Add(new Element
+                    {
+                        Name = "PapeSize",
+                        Cell = null,
+                        Content = Regex.Match(footerRow?.First()?.Value ?? "N/D", @"AGCC.*\.[a-z]+")?.Value ?? "N/D"
+                    });
+                    elements.Add(new Element
+                    {
+                        Name = "TotalSheets",
+                        Cell = rightCells?[1],
+                        Content = Int32.TryParse(rightCells?[1].GetContent()?.Value ?? "N/D", out int sheets) ? sheets : -1
+                    });
+                    elements.Add(new Element
+                    {
+                        Name = "ContractorName",
+                        Cell = rightCells?[3],
+                        Content = rightCells?[3].GetContent()?.Value ?? "N/D"
+                    });
+                    elements.Add(new Element
+                    {
+                        Name = "FileName",
+                        Cell = rightCells?[4],
+                        Content = rightCells?[4].GetContent()?.Value ?? "N/D"
+                    });
+                    elements.Add(new Element
+                    {
+                        Name = "Rev",
+                        Cell = rightCells?[5],
+                        Content = rightCells?[5].GetContent()?.Value ?? "N/D"
+                    });
+                    //model.FooterName = footerRow.Count() > 0 ? Regex.Match(footerRow.First().Value, @"AGCC.*\.[a-z]+").Value : Error.error.ToString();
+                    //model.PapeSize = footerRow.Count() > 0 ?Regex.Match(footerRow.LastOrDefault().Value, @"[AА][0-9]+([xх][0-9])?").Value : Error.error.ToString();
+                    //model.Scale = "N/D";
+                    //model.TotalSheets = Int32.TryParse(rightCells[1].GetContent().Value, out int sheets) ? sheets : -1;
+                    //model.ContractorName = rightCells[3].GetContent().Value;
+                    //model.FileName = rightCells[4].GetContent().Value;
+                    //model.Rev = rightCells[5].GetContent().Value;
+
                     var activeCell = table.SetActiveCell(rightCells[1]);                   
                     var _cell = table.MoveLeft(1);
-                    model.Sheet = Int32.TryParse(_cell.GetContent().Value, out int sheet) ? sheet : -1;
+                    elements.Add(new Element
+                    {
+                        Name = "Sheet",
+                        Cell = _cell,
+                        Content = Int32.TryParse(_cell?.GetContent()?.Value ?? "N/D", out int sheet) ? sheet : -1
+                    });
+                    //model.Sheet = Int32.TryParse(_cell.GetContent().Value, out int sheet) ? sheet : -1;
                     activeCell = table.SetActiveCell(_cell);
                     _cell = table.MoveLeft(1);
-                    model.StageEn = _cell.GetContent().Value;
+                    elements.Add(new Element
+                    {
+                        Name = "StageRu",
+                        Cell = _cell,
+                        Content = _cell?.GetContent()?.Value ?? "N/D"
+                    });
+                    //model.StageEn = _cell.GetContent().Value;
                     activeCell = table.SetActiveCell(_cell);
                     _cell = table.MoveLeft(0);
-                    model.RusDescription = _cell.GetContent().Value;
+                    elements.Add(new Element
+                    {
+                        Name = "RusDescription",
+                        Cell = _cell,
+                        Content = _cell?.GetContent()?.Value ?? "N/D"
+                    });
+                    //model.RusDescription = _cell.GetContent().Value;
                     activeCell = table.SetActiveCell(rightCells[6]);
                     _cell = table.MoveLeft(1);
                     activeCell = table.SetActiveCell(_cell);
                     _cell = table.MoveLeft(1);
-                    model.StageRu = _cell.GetContent().Value;
+                    elements.Add(new Element
+                    {
+                        Name = "StageEn",
+                        Cell = _cell,
+                        Content = _cell?.GetContent()?.Value ?? "N/D"
+                    });
+                    //model.StageRu = _cell.GetContent().Value;
                     activeCell = table.SetActiveCell(_cell);
                     _cell = table.MoveLeft(0);
-                    model.EngDescription = _cell.GetContent().Value;
-                    model.ClientRev = Error.error.ToString();
-                    model.Date = new DateTime(01,01,0001);
-                    model.Status = Error.error.ToString();
-                    model.Issue = Error.error.ToString();
-                    model.PurposeIssue = Error.error.ToString();
+                    elements.Add(new Element
+                    {
+                        Name = "EngDescription",
+                        Cell = _cell,
+                        Content = _cell?.GetContent()?.Value ?? "N/D"
+                    });
+                    //model.EngDescription = _cell.GetContent().Value;
+                    //model.ClientRev = Error.error.ToString();
+                    //model.Date = new DateTime(01,01,0001);
+                    //model.Status = Error.error.ToString();
+                    //model.Issue = Error.error.ToString();
+                    //model.PurposeIssue = Error.error.ToString();
 
                     var leftCells = table.LeftCells.OrderBy(r => r.Bounds.Y).ToArray();
                     var i = 0;
@@ -83,11 +154,49 @@ namespace RDLibrary
                         topCell = leftCells[i++];                        
                     }
                     var topCells = table.Cells.Where(r => r.TopLeftCross.HorizontalLine.Id == topCell.TopLeftCross.HorizontalLine.Id).OrderBy(r=>r.Bounds.X).ToArray();
-                    model.ClientRev =  topCells[0].GetContent().Value;
-                    model.Date = DateTime.TryParse(topCells[1].GetContent().Value, out DateTime date) ? date : new DateTime(01, 01, 0001);
-                    model.PurposeIssue = topCells[2].GetContent().Value;
-                    model.Issue =  topCells[2].GetContent().Value.Substring(0,3);                     
-
+                    elements.Add(new Element
+                    {
+                        Name = "ClientRev",
+                        Cell = _cell,
+                        Content = topCells?[0]?.GetContent()?.Value ?? "N/D"
+                    });
+                    //model.ClientRev =  topCells[0].GetContent().Value;
+                    elements.Add(new Element
+                    {
+                        Name = "Date",
+                        Cell = topCells?[1],
+                        Content = DateTime.TryParse(topCells?[1]?.GetContent()?.Value ?? "N/D", out DateTime date) ? date : new DateTime(01, 01, 0001)
+                    });
+                    //model.Date = DateTime.TryParse(topCells[1].GetContent().Value, out DateTime date) ? date : new DateTime(01, 01, 0001);
+                    elements.Add(new Element
+                    {
+                        Name = "PurposeIssue",
+                        Cell = topCells?[2],
+                        Content = topCells?[2]?.GetContent()?.Value ?? "N/D"
+                    });
+                    //model.PurposeIssue = topCells[2].GetContent().Value;
+                    elements.Add(new Element
+                    {
+                        Name = "Issue",
+                        Cell = topCells?[2],
+                        Content = topCells?[2]?.GetContent()?.Value?.Substring(0, 3) ?? "N/D"
+                    });
+                    //model.Issue =  topCells[2].GetContent().Value.Substring(0,3);                     
+                    model.Issue = elements.Where(r => r.Name == "Issue").Select(r => r.Content).First().ToString();
+                    model.PurposeIssue = elements.Where(r => r.Name == "PurposeIssue").Select(r => r.Content).First().ToString();
+                    model.Date = (DateTime)elements.Where(r => r.Name == "Date").Select(r => r.Content).First();
+                    model.ClientRev = elements.Where(r => r.Name == "ClientRev").Select(r => r.Content).First().ToString();
+                    model.EngDescription = elements.Where(r => r.Name == "EngDescription").Select(r => r.Content).First().ToString();
+                    model.StageRu = elements.Where(r => r.Name == "StageRu").Select(r => r.Content).First().ToString();
+                    model.RusDescription = elements.Where(r => r.Name == "RusDescription").Select(r => r.Content).First().ToString();
+                    model.StageEn = elements.Where(r => r.Name == "StageEn").Select(r => r.Content).First().ToString();
+                    model.Sheet = (int)elements.Where(r => r.Name == "Sheet").Select(r => r.Content).First();
+                    model.Rev = elements.Where(r => r.Name == "Rev").Select(r => r.Content).First().ToString();
+                    model.FileName = elements.Where(r => r.Name == "FileName").Select(r => r.Content).First().ToString();
+                    model.ContractorName = elements.Where(r => r.Name == "ContractorName").Select(r => r.Content).First().ToString();
+                    model.TotalSheets = (int)elements.Where(r => r.Name == "TotalSheets").Select(r => r.Content).First();
+                    model.PapeSize = elements.Where(r => r.Name == "PapeSize").Select(r => r.Content).First().ToString();
+                    model.FooterName = elements.Where(r => r.Name == "FooterName").Select(r => r.Content).First().ToString();
                 }
             }
             catch (Exception ex)
@@ -110,33 +219,25 @@ namespace RDLibrary
                 model.Status = Error.warning.ToString();
                 model.TotalSheets = -1;
             }
-
+            errorCells = elements.Where(r => errStatus.Any(er => r.Content.ToString() == er)).Select(r=>r.Cell).ToList();
+            var svgLink = SaveColorSvg(svg, table, errorCells, link);
+            Svg.SaveAsImg(svgLink, link.Replace(".pdf",".bmp"));
             return await Task.FromResult(model);
         }
 
-        public void SaveSvg(Svg svg, Table table, string link)
+        public string SaveColorSvg(Svg svg, Table table, List<Cell> cells, string link, string tableColor = "#13F423", string errorColor = "#F52007")
         {
-            foreach(var cell in table.Cells)
+            string name = link.Replace("pdf", "svg");
+            svg.DrawRectangle(table.Bounds, 2, tableColor);
+            foreach (var cell in cells.Where(r=>r!=null))
             {
-                svg.DrawRectangle(cell.Bounds, 2, "#EA13F4");
+                svg.DrawRectangle(cell.Bounds, 2, errorColor);
             }
             svg.SaveAsSvg(link.Replace("pdf", "svg"));
-
+            return name;
         }
 
-        public void GetImage(Svg svg, Table table, string link)
-        {
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-            //var svgLink = link.Replace("pdf", "svg");
-            //foreach (var cell in table.Cells)
-            //{
-            //    svg.DrawRectangle(cell.Bounds, 2, "#EA13F4");
-            //}
-            //svg.SaveAsSvg(svgLink);
-            //var svgBytes = svg.File;
-            //var bytes = File.ReadAllBytes(link);
-            //image.Save(link.Replace("pdf","bmp"));
-        }
+       
         //public async Task<TestAttribute> GetFileAttributes(byte[] pdfBytes)
         //{
         //    Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
