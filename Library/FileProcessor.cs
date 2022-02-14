@@ -21,7 +21,6 @@ namespace RDLibrary
         public async Task<AttributesModel> GetFileAttributes(byte[] pdfBytes, string link)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-            var test = Directory.GetFiles(dir);
             List<string> errStatus = new List<string>
             {
                 "N/D",
@@ -163,12 +162,13 @@ namespace RDLibrary
                         Cell = _cell,
                         Content = topCells?[0]?.GetContent()?.Value ?? "N/D"
                     });
+                    string date = string.IsNullOrEmpty(topCells?[1]?.GetContent()?.Value.Trim()) ? "N/D" : topCells?[1]?.GetContent()?.Value.Trim();
                     //model.ClientRev =  topCells[0].GetContent().Value;
                     elements.Add(new Element
                     {
                         Name = "Date",
                         Cell = topCells?[1],
-                        Content = DateTime.TryParse(topCells?[1]?.GetContent()?.Value ?? "N/D", out DateTime date) ? date : new DateTime(01, 01, 0001)
+                        Content = DateTime.TryParseExact(date, "dd.MM.yyyy", null, System.Globalization.DateTimeStyles.None, out var d) ? d : new DateTime(01, 01, 0001)
                     });
                     //model.Date = DateTime.TryParse(topCells[1].GetContent().Value, out DateTime date) ? date : new DateTime(01, 01, 0001);
                     elements.Add(new Element
