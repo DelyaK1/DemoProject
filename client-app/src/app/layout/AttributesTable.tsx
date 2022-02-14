@@ -10,6 +10,7 @@ interface Props{
 
   export default function AttributesTable({selectedDocumentAttributes}: Props)
 {
+  console.log(selectedDocumentAttributes);
   return (
     <Table>
     <Table.Header>
@@ -68,13 +69,6 @@ interface Props{
       <Table.Row>
         <Table.Cell>StageEn:</Table.Cell>
         <Table.Cell><div style={{color:selectedDocumentAttributes?.StageEn == 'N/D' ? 'red':""}}>{selectedDocumentAttributes?.StageEn}</div></Table.Cell>
-
-      </Table.Row>
-      <Table.Row>
-        <Table.Cell>StageRu:</Table.Cell>
-          <Table.Cell>
-            <div style={{color:selectedDocumentAttributes?.StageRu == 'N/D' ? 'red':""}}>{selectedDocumentAttributes?.StageRu}</div>
-            </Table.Cell>
       </Table.Row>
       <Table.Row>
         <Table.Cell>Sheet:</Table.Cell>
@@ -111,24 +105,6 @@ interface Props{
           <Table.Cell>
           <div style={{color:selectedDocumentAttributes?.Date == '0001-01-01T00:00:00'? 'red':""}}>{selectedDocumentAttributes?.Date.split('T')[0]}</div>
             </Table.Cell>
-      </Table.Row>
-      <Table.Row>
-        <Table.Cell>Pape Size:</Table.Cell>
-          <Table.Cell>
-          <div style={{color:selectedDocumentAttributes?.PapeSize == 'N/D' ? 'red':""}}>{selectedDocumentAttributes?.PapeSize}</div>
-            </Table.Cell>
-      </Table.Row>
-      <Table.Row>
-        <Table.Cell>Status:</Table.Cell>
-          <Table.Cell>
-          <div style={{color:selectedDocumentAttributes?.Status == 'N/D' ? 'red':""}}>{selectedDocumentAttributes?.Status}</div>
-          </Table.Cell>
-      </Table.Row>
-      <Table.Row>
-        <Table.Cell>Scale:</Table.Cell>
-        <Table.Cell>
-       <div style={{color:selectedDocumentAttributes?.Scale == 'N/D' ? 'red':""}}>{selectedDocumentAttributes?.Scale}</div>
-      </Table.Cell>
       </Table.Row>
     </Table.Body>
     </Table>

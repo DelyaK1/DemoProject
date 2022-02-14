@@ -9,12 +9,14 @@ import FileUploadComponent from './FileUploadComponent';
 import { DocumentAttributesModel } from '../models/DocumentAttributesModel';
 import Header from '../../components/Header';
 import { AnyRecord } from 'dns';
-import SVGWatcher from '../../components/SVGWatcher';
+import SVGWatcher from '../../components/Watcher';
 import AttributesTable from './AttributesTable';
 import { AttributesModel } from '../models/AttributesModel';
+import { Console } from 'console';
+import Loader from '../../components/Loader';
 
 function App() {
-
+    
   const [file, setFile] = useState<any>();
   const [fileName, setFileName] = useState("");
 
@@ -51,6 +53,8 @@ function App() {
 
   const [selectedDocumentAttributes, setselectedDocumentAttributes] = useState<AttributesModel | undefined>(undefined);
 
+  const [selectedDocumentImage, setselectedDocumentImage] = useState<string>("");
+
   // const [DocumentAttributes, setDocumentAttributes] = useState<AttributesModel>();
   // useEffect(() => {
   //   agent.Attributes.element(id).then(responce => {setDocumentAttributes = responce;})
@@ -59,32 +63,24 @@ function App() {
   function handleSelectDocumentAttributes(id: number) {
 
     agent.Attributes.element(id).then(responce=>
-    {  
-      console.log(id);
-      setselectedDocumentAttributes(responce);
-      console.log(responce);
+    {
+      setselectedDocumentAttributes(responce); 
       if(responce.FileName == null)
       {
-        console.log("no data");
+        console.log("no attributes");
         agent.Attributes.saveElement(id).then();
       }
     })
-  };
 
-  function handleSelectDocumentImage(id: number) {
-
-    agent.Attributes.element(id).then(responce=>
-    {  
-      console.log(id);
-      setselectedDocumentAttributes(responce);
-      console.log(responce);
-      if(responce.FileName == null)
+    agent.Image.image(id).then(res=>
       {
-        console.log("no data");
-        agent.Attributes.saveElement(id).then();
-      }
-    })
-  };
+        setselectedDocumentImage(res);
+        if(res == null)
+        {
+            console.log("no image");
+        }
+      })
+  }; 
 
   return (
     <>
@@ -122,16 +118,18 @@ function App() {
       <Grid>
         {selectedDocumentAttributes !== undefined && 
         <div style={{ marginTop: '10px', height: '300px', width: '650px', marginLeft: '70px', overflowY: 'scroll', border: '10px' }}>
+          {/* <Loader/> */}
           <AttributesTable
             selectedDocumentAttributes={selectedDocumentAttributes}
           />
-        </div> }
-        {
-        selectedDocumentAttributes !== undefined && 
+        </div> } 
+        {selectedDocumentAttributes !== undefined && 
         <div style={{ marginTop: '-250px', marginLeft: '20px', border: '10px' }}>
-        <SVGWatcher/>
-        </div>  
-        }   
+        {/* <Loader/> */}
+        <SVGWatcher
+        image={selectedDocumentImage}/>
+        </div> 
+}        
       </Grid>
       <Grid>
       
@@ -142,6 +140,10 @@ function App() {
 
 export default App;
 
+
+  function usePromiseTracker(): { promiseInProgress: any; } {
+    throw new Error('Function not implemented.');
+  }
 // function FIleModel(fileId: any, FIleModel: any) {
 //   throw new Error('Function not implemented.');
 // }

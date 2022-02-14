@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DemoProject.Database.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -9,14 +10,26 @@ namespace DemoProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ImageController : ControllerBase
+    public class ImageController : Controller
     {
 
         [HttpGet("{id}")]
         public async Task<string> GetImage(int id)
         {
-            //var docAttributes = context.GetFileAttributes(id);
-            return "";
+            try
+            {
+                FileContext context = new FileContext();
+                string imagename = context.GetImage(id);
+                if (!string.IsNullOrEmpty(imagename))
+                    imagename = imagename + ".bmp";
+
+                return imagename;
+            }
+            catch
+            {
+                return "";
+            }
+            
         }
     }
 }

@@ -48,13 +48,17 @@ const Attributes = {
 const Svg = {
     svg: (fileId: number) => requests.get<any>(`/Svg/${fileId}`)
 }
+const Image = {
+    image: (fileId: number) => requests.get<any>(`/Image/${fileId}`)
+}
 
 const formData = new FormData()
 
 const agent = {
     Files,
     Attributes,
-    Svg
+    Svg,
+    Image
 }
 
 export default agent;

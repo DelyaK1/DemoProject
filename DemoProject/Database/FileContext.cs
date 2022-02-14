@@ -126,5 +126,18 @@ namespace DemoProject.Database.Models
             return file;
         }
 
+        public string GetImage(int pageid)
+        {
+            try
+            {
+                var filemodel = _context.TestFiles.Where(r => r.Id == pageid).Select(f => f.Document.DocumentName).FirstOrDefault();
+                return filemodel;
+            }
+            catch
+            {
+                return null;
+            }            
+        }
+
     }
 }

@@ -6,7 +6,7 @@ interface Props{
   file: FileModel;
   selectDocument: (id: number)=>void;
   };
-const FileRow = ({file, selectDocument} : Props) => (
+const FileRow = ({file, selectDocument } : Props) => (
 
         <Table.Row>
         <Table.Cell textAlign='center' singleLine>

@@ -16,15 +16,18 @@ namespace RDLibrary
 {
     public class FileProcessor
     {
+        public const string dir = @"D:\VS\AGCC_RD\DemoProject\client-app\public";
+
         public async Task<AttributesModel> GetFileAttributes(byte[] pdfBytes, string link)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            var test = Directory.GetFiles(dir);
             List<string> errStatus = new List<string>
             {
                 "N/D",
                 "warning",
                 "-1",
-                "01.01.0001"
+                "0001-01-01T00:00:00"
             };
             MemoryStream stream = new MemoryStream();
             stream.Write(pdfBytes, 0, pdfBytes.Length);
@@ -219,9 +222,18 @@ namespace RDLibrary
                 model.Status = Error.warning.ToString();
                 model.TotalSheets = -1;
             }
-            errorCells = elements.Where(r => errStatus.Any(er => r.Content.ToString() == er)).Select(r=>r.Cell).ToList();
-            var svgLink = SaveColorSvg(svg, table, errorCells, link);
-            Svg.SaveAsImg(svgLink, link.Replace(".pdf",".bmp"));
+            try
+            {
+                errorCells = elements.Where(r => errStatus.Any(er => r.Content.ToString() == er)).Select(r=>r.Cell).ToList();
+                var svgLink = SaveColorSvg(svg, table, errorCells, link);
+                string imagePath = dir + "\\"+Regex.Replace(System.IO.Path.GetFileNameWithoutExtension(link), "_page_[0-9]+","") + ".bmp";
+
+                Svg.SaveAsImg(svgLink, imagePath);
+            }
+            catch{
+
+            }
+            
             return await Task.FromResult(model);
         }
 
