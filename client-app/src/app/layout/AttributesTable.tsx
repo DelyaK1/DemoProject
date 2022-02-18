@@ -1,17 +1,18 @@
 import { stringify } from 'querystring';
 import React from 'react';
-import {Icon, Label, Table } from 'semantic-ui-react';
+import {Table } from 'semantic-ui-react';
 import { AttributesModel } from '../models/AttributesModel';
+import Loader from './Loader';
 
-interface Props{
-
-  selectedDocumentAttributes: AttributesModel|undefined;
-  }
-
-  export default function AttributesTable({selectedDocumentAttributes}: Props)
+interface Props
 {
-  console.log(selectedDocumentAttributes);
-  return (
+  isLoading: boolean;
+  selectedDocumentAttributes: AttributesModel|undefined;
+}
+  export default function AttributesTable({selectedDocumentAttributes, isLoading}: Props)
+{
+  return isLoading ? (<Loader />) : 
+    (
     <Table>
     <Table.Header>
       <Table.Row>

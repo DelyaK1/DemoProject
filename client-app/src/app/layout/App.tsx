@@ -16,7 +16,7 @@ import { Console } from 'console';
 import Loader from '../../components/Loader';
 
 function App() {
-    
+
   const [file, setFile] = useState<any>();
   const [fileName, setFileName] = useState("");
 
@@ -37,9 +37,12 @@ function App() {
     }
     catch (ex) {
       console.log(ex);
-    };  
-   
+    };
+
   };
+
+  const [DataIsLoading, SetDataIsLoading] = useState(true);
+  const [ImageIsLoading, SetImageIsLoading] = useState(true);
 
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -62,25 +65,32 @@ function App() {
 
   function handleSelectDocumentAttributes(id: number) {
 
-    agent.Attributes.element(id).then(responce=>
-    {
-      setselectedDocumentAttributes(responce); 
-      if(responce.FileName == null)
-      {
-        console.log("no attributes");
+    SetDataIsLoading(true);
+    SetImageIsLoading(true)
+    agent.Attributes.element(id).then(responce => {
+      setselectedDocumentAttributes(responce);
+      if (responce.FileName == null) {
         agent.Attributes.saveElement(id).then();
+      }
+      else {
+        SetDataIsLoading(false);
       }
     })
 
-    agent.Image.image(id).then(res=>
-      {
-        setselectedDocumentImage(res);
-        if(res == null)
-        {
-            console.log("no image");
-        }
-      })
-  }; 
+    agent.Image.image(id).then(res => {
+      setselectedDocumentImage(res);
+      if (res != null) {
+        SetImageIsLoading(false);
+      }
+      // else
+      // {
+      //   SetImageIsLoading(false);
+      // }
+    })
+
+    console.log("DataIsLoading " + DataIsLoading)
+    console.log("ImageIsLoading " + ImageIsLoading)
+  };
 
   return (
     <>
@@ -116,23 +126,24 @@ function App() {
         </div>
       </Grid>
       <Grid>
-        {selectedDocumentAttributes !== undefined && 
-        <div style={{ marginTop: '10px', height: '300px', width: '650px', marginLeft: '70px', overflowY: 'scroll', border: '10px' }}>
-          {/* <Loader/> */}
-          <AttributesTable
-            selectedDocumentAttributes={selectedDocumentAttributes}
-          />
-        </div> } 
-        {selectedDocumentAttributes !== undefined && 
-        <div style={{ marginTop: '-250px', marginLeft: '20px', border: '10px' }}>
-        {/* <Loader/> */}
-        <SVGWatcher
-        image={selectedDocumentImage}/>
-        </div> 
-}        
+        {selectedDocumentAttributes !== undefined &&
+          <div style={{ marginTop: '10px', height: '300px', width: '650px', marginLeft: '70px', overflowY: 'scroll', border: '10px', position: 'relative' }}>
+            <AttributesTable
+              isLoading={DataIsLoading}
+              selectedDocumentAttributes={selectedDocumentAttributes}
+            />
+          </div>}
+        {selectedDocumentAttributes !== undefined &&
+          <div style={{ marginTop: '-250px', marginLeft: '20px', border: '10px', position: 'relative', minWidth: '750px'}}>
+            {/* <Loader/> */}
+            <SVGWatcher
+              isLoading={ImageIsLoading}
+              image={selectedDocumentImage} />
+          </div>
+        }
       </Grid>
       <Grid>
-      
+
       </Grid>
     </>
   );
@@ -141,9 +152,9 @@ function App() {
 export default App;
 
 
-  function usePromiseTracker(): { promiseInProgress: any; } {
-    throw new Error('Function not implemented.');
-  }
+function usePromiseTracker(): { promiseInProgress: any; } {
+  throw new Error('Function not implemented.');
+}
 // function FIleModel(fileId: any, FIleModel: any) {
 //   throw new Error('Function not implemented.');
 // }
